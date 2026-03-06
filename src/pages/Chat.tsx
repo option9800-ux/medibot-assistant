@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { Menu, Download, ArrowLeft, Activity } from "lucide-react";
 import { ChatMessageBubble } from "@/components/ChatMessage";
 import { ChatInput } from "@/components/ChatInput";
@@ -13,15 +13,21 @@ import {
   clearAllConversations,
   exportChatToTxt,
 } from "@/lib/chatStorage";
+import { supabase } from "@/integrations/supabase/client";
 
-interface ChatProps {
-  mode: "medical" | "general";
-}
+const SYSTEM_PROMPTS = {
+  medical:
+    "You are MediBot, a professional health assistant. Provide evidence-based medical information. Always include a disclaimer that you are an AI and not a substitute for professional medical advice. Be thorough but clear.",
+  general:
+    "You are a helpful general assistant knowledgeable about coding, science, history, and general knowledge. Be concise and helpful.",
+};
 
-export default function Chat({ mode }: ChatProps) {
+export default function Chat() {
+  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+  const mode = (searchParams.get("mode") as "medical" | "general") || "medical";
 
-  const [conversations, setConversations] = useState<Conversation[]>(getConversations(mode));
+  const [conversations, setConversations] = useState<Conversation[]>(getConversations());
   const [activeId, setActiveId] = useState<string | null>(null);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isStreaming, setIsStreaming] = useState(false);
@@ -30,18 +36,11 @@ export default function Chat({ mode }: ChatProps) {
 
   const activeConv = conversations.find((c) => c.id === activeId);
 
-  // Refresh conversations when mode changes
-  useEffect(() => {
-    setConversations(getConversations(mode));
-    setActiveId(null);
-    setMessages([]);
-  }, [mode]);
-
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
   }, [messages]);
 
-  const refreshConversations = () => setConversations(getConversations(mode));
+  const refreshConversations = () => setConversations(getConversations());
 
   const startNewChat = useCallback(() => {
     setActiveId(null);
@@ -58,13 +57,13 @@ export default function Chat({ mode }: ChatProps) {
   };
 
   const handleDelete = (id: string) => {
-    deleteConversation(id, mode);
+    deleteConversation(id);
     if (activeId === id) startNewChat();
     refreshConversations();
   };
 
   const handleClearAll = () => {
-    clearAllConversations(mode);
+    clearAllConversations();
     startNewChat();
     refreshConversations();
   };
@@ -75,7 +74,7 @@ export default function Chat({ mode }: ChatProps) {
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `medibot-${mode}-chat-${Date.now()}.txt`;
+    a.download = `medibot-chat-${Date.now()}.txt`;
     a.click();
     URL.revokeObjectURL(url);
   };
@@ -86,6 +85,7 @@ export default function Chat({ mode }: ChatProps) {
     setMessages(newMessages);
     setIsStreaming(true);
 
+    // Build conversation ID
     const convId = activeId || crypto.randomUUID();
     if (!activeId) setActiveId(convId);
 
@@ -103,6 +103,7 @@ export default function Chat({ mode }: ChatProps) {
     };
 
     try {
+      // Build messages for API
       const apiMessages = newMessages.map((m) => {
         if (m.fileData) {
           return {
@@ -164,6 +165,7 @@ export default function Chat({ mode }: ChatProps) {
 
     setIsStreaming(false);
 
+    // Save to localStorage
     setMessages((final) => {
       const conv: Conversation = {
         id: convId,
@@ -192,6 +194,7 @@ export default function Chat({ mode }: ChatProps) {
       />
 
       <div className="flex-1 flex flex-col min-w-0">
+        {/* Header */}
         <header className="glass flex items-center gap-3 px-4 py-3 border-b border-border">
           <button onClick={() => setSidebarOpen(true)} className="md:hidden p-1.5 rounded-md hover:bg-muted">
             <Menu className="w-5 h-5 text-muted-foreground" />
@@ -211,13 +214,12 @@ export default function Chat({ mode }: ChatProps) {
           )}
         </header>
 
+        {/* Messages */}
         <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 space-y-4">
           {messages.length === 0 && (
             <div className="flex flex-col items-center justify-center h-full text-center gap-3 opacity-60">
               <Activity className="w-12 h-12 text-primary animate-float" />
-              <p className="text-muted-foreground">
-                {mode === "medical" ? "Ask a health or medical question" : "Ask anything — coding, science, history..."}
-              </p>
+              <p className="text-muted-foreground">Start a conversation with MediBot</p>
             </div>
           )}
           {messages.map((m, i) => (
@@ -230,6 +232,7 @@ export default function Chat({ mode }: ChatProps) {
           ))}
         </div>
 
+        {/* Input */}
         <div className="p-4 pt-0">
           <ChatInput onSend={handleSend} disabled={isStreaming} />
         </div>

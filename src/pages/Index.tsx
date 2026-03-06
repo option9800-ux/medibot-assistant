@@ -21,8 +21,8 @@ const Index = () => {
       </div>
 
       <div className="flex flex-col sm:flex-row gap-6 animate-fade-in relative z-10" style={{ animationDelay: "0.2s" }}>
-        <ModeCard mode="medical" onClick={() => navigate("/medical")} />
-        <ModeCard mode="general" onClick={() => navigate("/general")} />
+        <ModeCard mode="medical" onClick={() => navigate("/chat?mode=medical")} />
+        <ModeCard mode="general" onClick={() => navigate("/chat?mode=general")} />
       </div>
     </div>
   );

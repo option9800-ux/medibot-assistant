@@ -12,13 +12,11 @@ export interface Conversation {
   createdAt: number;
 }
 
-function storageKey(mode: "medical" | "general") {
-  return `medibot-${mode}-conversations`;
-}
+const STORAGE_KEY = "medibot-conversations";
 
-export function getConversations(mode: "medical" | "general"): Conversation[] {
+export function getConversations(): Conversation[] {
   try {
-    const data = localStorage.getItem(storageKey(mode));
+    const data = localStorage.getItem(STORAGE_KEY);
     return data ? JSON.parse(data) : [];
   } catch {
     return [];
@@ -26,20 +24,20 @@ export function getConversations(mode: "medical" | "general"): Conversation[] {
 }
 
 export function saveConversation(conv: Conversation) {
-  const convs = getConversations(conv.mode);
+  const convs = getConversations();
   const idx = convs.findIndex((c) => c.id === conv.id);
   if (idx >= 0) convs[idx] = conv;
   else convs.unshift(conv);
-  localStorage.setItem(storageKey(conv.mode), JSON.stringify(convs));
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(convs));
 }
 
-export function deleteConversation(id: string, mode: "medical" | "general") {
-  const convs = getConversations(mode).filter((c) => c.id !== id);
-  localStorage.setItem(storageKey(mode), JSON.stringify(convs));
+export function deleteConversation(id: string) {
+  const convs = getConversations().filter((c) => c.id !== id);
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(convs));
 }
 
-export function clearAllConversations(mode: "medical" | "general") {
-  localStorage.removeItem(storageKey(mode));
+export function clearAllConversations() {
+  localStorage.removeItem(STORAGE_KEY);
 }
 
 export function exportChatToTxt(messages: ChatMessage[]): string {
