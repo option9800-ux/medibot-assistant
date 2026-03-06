@@ -1,4 +1,5 @@
-import { Trash2, Plus, MessageSquare, X } from "lucide-react";
+import { Trash2, Plus, MessageSquare, X, ArrowLeftRight } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import type { Conversation } from "@/lib/chatStorage";
 
 interface ChatSidebarProps {
@@ -13,6 +14,8 @@ interface ChatSidebarProps {
 }
 
 export function ChatSidebar({ conversations, activeId, onSelect, onNew, onDelete, onClearAll, open, onClose }: ChatSidebarProps) {
+  const navigate = useNavigate();
+
   return (
     <>
       {/* Overlay for mobile */}
@@ -59,6 +62,15 @@ export function ChatSidebar({ conversations, activeId, onSelect, onNew, onDelete
               </button>
             </div>
           ))}
+        </div>
+        <div className="p-3 border-t border-border">
+          <button
+            onClick={() => navigate("/")}
+            className="flex items-center gap-2 w-full p-2.5 rounded-lg hover:bg-muted transition-colors text-sm text-muted-foreground hover:text-primary"
+          >
+            <ArrowLeftRight className="w-4 h-4" />
+            <span>Switch Bot</span>
+          </button>
         </div>
       </aside>
     </>
