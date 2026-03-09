@@ -1,72 +1,37 @@
 import { useState, useEffect, useRef, useCallback } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
-import { Menu, Download, ArrowLeft, Activity } from "lucide-react";
+import { useSearchParams } from "react-router-dom";
+import { Download, Activity, Trash2 } from "lucide-react";
 import { ChatMessageBubble } from "@/components/ChatMessage";
 import { ChatInput } from "@/components/ChatInput";
-import { ChatSidebar } from "@/components/ChatSidebar";
+import { EmergencyAlert, detectEmergency } from "@/components/EmergencyAlert";
 import {
   type ChatMessage,
   type Conversation,
   getConversations,
   saveConversation,
-  deleteConversation,
-  clearAllConversations,
   exportChatToTxt,
 } from "@/lib/chatStorage";
-import { supabase } from "@/integrations/supabase/client";
-
-const SYSTEM_PROMPTS = {
-  medical:
-    "You are MediBot, a professional health assistant. Provide evidence-based medical information. Always include a disclaimer that you are an AI and not a substitute for professional medical advice. Be thorough but clear.",
-  general:
-    "You are a helpful general assistant knowledgeable about coding, science, history, and general knowledge. Be concise and helpful.",
-};
+import { Button } from "@/components/ui/button";
 
 export default function Chat() {
   const [searchParams] = useSearchParams();
-  const navigate = useNavigate();
   const mode = (searchParams.get("mode") as "medical" | "general") || "medical";
 
-  const [conversations, setConversations] = useState<Conversation[]>(getConversations());
   const [activeId, setActiveId] = useState<string | null>(null);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isStreaming, setIsStreaming] = useState(false);
-  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [showEmergency, setShowEmergency] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
-
-  const activeConv = conversations.find((c) => c.id === activeId);
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
   }, [messages]);
 
-  const refreshConversations = () => setConversations(getConversations());
-
   const startNewChat = useCallback(() => {
     setActiveId(null);
     setMessages([]);
+    setShowEmergency(false);
   }, []);
-
-  const selectConversation = (id: string) => {
-    const conv = conversations.find((c) => c.id === id);
-    if (conv) {
-      setActiveId(id);
-      setMessages(conv.messages);
-      setSidebarOpen(false);
-    }
-  };
-
-  const handleDelete = (id: string) => {
-    deleteConversation(id);
-    if (activeId === id) startNewChat();
-    refreshConversations();
-  };
-
-  const handleClearAll = () => {
-    clearAllConversations();
-    startNewChat();
-    refreshConversations();
-  };
 
   const handleDownload = () => {
     const text = exportChatToTxt(messages);
@@ -74,18 +39,22 @@ export default function Chat() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `medibot-chat-${Date.now()}.txt`;
+    a.download = `mediassist-chat-${Date.now()}.txt`;
     a.click();
     URL.revokeObjectURL(url);
   };
 
   const handleSend = async (text: string, file?: { mimeType: string; base64: string; fileName: string } | null) => {
+    // Emergency detection
+    if (mode === "medical" && detectEmergency(text)) {
+      setShowEmergency(true);
+    }
+
     const userMsg: ChatMessage = { role: "user", content: text, fileData: file };
     const newMessages = [...messages, userMsg];
     setMessages(newMessages);
     setIsStreaming(true);
 
-    // Build conversation ID
     const convId = activeId || crypto.randomUUID();
     if (!activeId) setActiveId(convId);
 
@@ -103,7 +72,6 @@ export default function Chat() {
     };
 
     try {
-      // Build messages for API
       const apiMessages = newMessages.map((m) => {
         if (m.fileData) {
           return {
@@ -165,77 +133,76 @@ export default function Chat() {
 
     setIsStreaming(false);
 
-    // Save to localStorage
     setMessages((final) => {
       const conv: Conversation = {
         id: convId,
         mode,
         title: text.slice(0, 40) || "New chat",
         messages: final,
-        createdAt: activeConv?.createdAt || Date.now(),
+        createdAt: Date.now(),
       };
       saveConversation(conv);
-      refreshConversations();
       return final;
     });
   };
 
   return (
-    <div className="h-screen flex overflow-hidden">
-      <ChatSidebar
-        conversations={conversations}
-        activeId={activeId}
-        onSelect={selectConversation}
-        onNew={startNewChat}
-        onDelete={handleDelete}
-        onClearAll={handleClearAll}
-        open={sidebarOpen}
-        onClose={() => setSidebarOpen(false)}
-      />
+    <div className="h-full flex flex-col">
+      {/* Sub-header */}
+      <div className="flex items-center gap-3 px-4 py-2 border-b border-border">
+        <Activity className="w-4 h-4 text-primary" />
+        <span className="text-sm font-medium text-primary">
+          {mode === "medical" ? "Medical" : "General"} Mode
+        </span>
+        <div className="flex-1" />
+        {messages.length > 0 && (
+          <div className="flex gap-1">
+            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={handleDownload} title="Download">
+              <Download className="w-3.5 h-3.5" />
+            </Button>
+            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={startNewChat} title="New chat">
+              <Trash2 className="w-3.5 h-3.5" />
+            </Button>
+          </div>
+        )}
+      </div>
 
-      <div className="flex-1 flex flex-col min-w-0">
-        {/* Header */}
-        <header className="glass flex items-center gap-3 px-4 py-3 border-b border-border">
-          <button onClick={() => setSidebarOpen(true)} className="md:hidden p-1.5 rounded-md hover:bg-muted">
-            <Menu className="w-5 h-5 text-muted-foreground" />
-          </button>
-          <button onClick={() => navigate("/")} className="p-1.5 rounded-md hover:bg-muted">
-            <ArrowLeft className="w-5 h-5 text-muted-foreground" />
-          </button>
-          <Activity className="w-5 h-5 text-primary" />
-          <h1 className="font-semibold text-primary text-sm">
-            MediBot — {mode === "medical" ? "Medical" : "General"} Mode
-          </h1>
-          <div className="flex-1" />
-          {messages.length > 0 && (
-            <button onClick={handleDownload} className="p-1.5 rounded-md hover:bg-muted" title="Download chat">
-              <Download className="w-4 h-4 text-muted-foreground" />
-            </button>
-          )}
-        </header>
+      {/* Emergency Alert */}
+      {showEmergency && <EmergencyAlert />}
 
-        {/* Messages */}
-        <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 space-y-4">
-          {messages.length === 0 && (
-            <div className="flex flex-col items-center justify-center h-full text-center gap-3 opacity-60">
-              <Activity className="w-12 h-12 text-primary animate-float" />
-              <p className="text-muted-foreground">Start a conversation with MediBot</p>
-            </div>
-          )}
-          {messages.map((m, i) => (
-            <ChatMessageBubble
-              key={i}
-              role={m.role}
-              content={m.content}
-              isStreaming={isStreaming && i === messages.length - 1 && m.role === "assistant"}
-            />
-          ))}
+      {/* Messages */}
+      <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 space-y-4">
+        {messages.length === 0 && (
+          <div className="flex flex-col items-center justify-center h-full text-center gap-3 opacity-60">
+            <Activity className="w-12 h-12 text-primary animate-float" />
+            <p className="text-muted-foreground">Start a conversation with MediAssist AI</p>
+            <p className="text-xs text-muted-foreground max-w-sm">
+              Ask health questions, describe symptoms, or upload medical reports for analysis.
+            </p>
+          </div>
+        )}
+        {messages.map((m, i) => (
+          <ChatMessageBubble
+            key={i}
+            role={m.role}
+            content={m.content}
+            isStreaming={isStreaming && i === messages.length - 1 && m.role === "assistant"}
+          />
+        ))}
+      </div>
+
+      {/* Disclaimer */}
+      {messages.length === 0 && (
+        <div className="px-4 pb-2">
+          <p className="text-[10px] text-muted-foreground text-center">
+            ⚕️ This AI provides general health info and is not a substitute for professional medical advice.
+          </p>
         </div>
+      )}
 
-        {/* Input */}
-        <div className="p-4 pt-0">
-          <ChatInput onSend={handleSend} disabled={isStreaming} />
-        </div>
+      {/* Input */}
+      <div className="p-4 pt-0">
+        <ChatInput onSend={handleSend} disabled={isStreaming} />
       </div>
     </div>
   );
