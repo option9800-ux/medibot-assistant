@@ -14,6 +14,7 @@ import MedicineInfo from "./pages/MedicineInfo";
 import Reports from "./pages/Reports";
 import DoctorFinder from "./pages/DoctorFinder";
 import HealthHistory from "./pages/HealthHistory";
+import Profile from "./pages/Profile";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -40,6 +41,7 @@ const App = () => (
                       <Route path="/reports" element={<Reports />} />
                       <Route path="/doctors" element={<DoctorFinder />} />
                       <Route path="/history" element={<HealthHistory />} />
+                      <Route path="/profile" element={<Profile />} />
                       <Route path="*" element={<NotFound />} />
                     </Routes>
                   </AppLayout>
