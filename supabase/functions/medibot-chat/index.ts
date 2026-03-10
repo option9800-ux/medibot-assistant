@@ -11,6 +11,8 @@ const SYSTEM_PROMPTS: Record<string, string> = {
     "You are MediBot, a professional health assistant. Provide evidence-based medical information. Always include a disclaimer that you are an AI and not a substitute for professional medical advice, diagnosis, or treatment. Always recommend consulting a healthcare professional. Be thorough, clear, and empathetic.",
   general:
     "You are a helpful general assistant knowledgeable about coding, science, history, mathematics, and general knowledge. Be concise, accurate, and helpful. Use markdown formatting for code blocks and structured responses.",
+  symptom_check:
+    "You are a medical symptom analysis assistant. Analyze the user's symptoms carefully and provide possible conditions with risk levels and care suggestions. Be thorough but concise.",
 };
 
 serve(async (req) => {
@@ -19,7 +21,7 @@ serve(async (req) => {
   }
 
   try {
-    const { messages, mode } = await req.json();
+    const { messages, mode, useTools } = await req.json();
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
 
@@ -44,17 +46,61 @@ serve(async (req) => {
       return { role: m.role, content: m.content };
     });
 
+    const body: any = {
+      model: "google/gemini-3-flash-preview",
+      messages: [{ role: "system", content: systemPrompt }, ...apiMessages],
+      stream: !useTools,
+    };
+
+    // Add tool calling for structured output (symptom checker)
+    if (useTools) {
+      body.tools = [
+        {
+          type: "function",
+          function: {
+            name: "symptom_analysis",
+            description: "Analyze symptoms and return structured results with possible conditions, risk levels, and care suggestions. Optionally include a follow-up question if more info is needed.",
+            parameters: {
+              type: "object",
+              properties: {
+                followUpQuestion: {
+                  type: "string",
+                  description: "A follow-up question to ask if more information is needed. Null or empty if enough info is available.",
+                },
+                results: {
+                  type: "array",
+                  items: {
+                    type: "object",
+                    properties: {
+                      condition: { type: "string", description: "Name of the possible condition" },
+                      riskLevel: { type: "string", enum: ["Low", "Medium", "High"], description: "Severity level" },
+                      suggestedCare: { type: "string", description: "Brief care advice" },
+                    },
+                    required: ["condition", "riskLevel", "suggestedCare"],
+                    additionalProperties: false,
+                  },
+                },
+                recommendation: {
+                  type: "string",
+                  description: "Overall recommendation for the patient",
+                },
+              },
+              required: ["results", "recommendation"],
+              additionalProperties: false,
+            },
+          },
+        },
+      ];
+      body.tool_choice = { type: "function", function: { name: "symptom_analysis" } };
+    }
+
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: {
         Authorization: `Bearer ${LOVABLE_API_KEY}`,
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({
-        model: "google/gemini-3-flash-preview",
-        messages: [{ role: "system", content: systemPrompt }, ...apiMessages],
-        stream: true,
-      }),
+      body: JSON.stringify(body),
     });
 
     if (!response.ok) {
@@ -73,6 +119,22 @@ serve(async (req) => {
       const t = await response.text();
       console.error("AI gateway error:", response.status, t);
       return new Response(JSON.stringify({ error: "AI service error" }), {
+        status: 500,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    if (useTools) {
+      // Non-streaming: return parsed tool call result
+      const data = await response.json();
+      const toolCall = data.choices?.[0]?.message?.tool_calls?.[0];
+      if (toolCall) {
+        const args = JSON.parse(toolCall.function.arguments);
+        return new Response(JSON.stringify(args), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      return new Response(JSON.stringify({ error: "No tool call in response" }), {
         status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });

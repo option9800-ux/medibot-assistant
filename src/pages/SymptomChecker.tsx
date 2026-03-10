@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 interface SymptomResult {
   condition: string;
@@ -27,70 +28,33 @@ export default function SymptomChecker() {
   const analyzeSymptoms = async (extraContext?: string) => {
     setLoading(true);
     try {
-      const prompt = `Analyze these symptoms and return a JSON object with this exact structure:
-{
-  "followUpQuestion": "a follow-up question to ask (or null if enough info)",
-  "results": [
-    { "condition": "name", "riskLevel": "Low|Medium|High", "suggestedCare": "brief advice" }
-  ],
-  "recommendation": "overall recommendation"
-}
+      const prompt = `Analyze these symptoms: ${symptoms}${extraContext ? `. Additional info: ${extraContext}` : ""}`;
 
-Symptoms: ${symptoms}
-${extraContext ? `Additional info: ${extraContext}` : ""}
+      const { data, error } = await supabase.functions.invoke("medibot-chat", {
+        body: {
+          messages: [{ role: "user", content: prompt }],
+          mode: "symptom_check",
+          useTools: true,
+        },
+      });
 
-Return ONLY valid JSON, no markdown.`;
+      if (error) throw error;
 
-      const resp = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/medibot-chat`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
-          },
-          body: JSON.stringify({
-            messages: [{ role: "user", content: prompt }],
-            mode: "medical",
-          }),
-        }
-      );
-
-      if (!resp.ok || !resp.body) throw new Error("Failed");
-
-      const reader = resp.body.getReader();
-      const decoder = new TextDecoder();
-      let full = "";
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        const chunk = decoder.decode(value, { stream: true });
-        for (const line of chunk.split("\n")) {
-          if (!line.startsWith("data: ")) continue;
-          const json = line.slice(6).trim();
-          if (json === "[DONE]") break;
-          try {
-            const parsed = JSON.parse(json);
-            const c = parsed.choices?.[0]?.delta?.content;
-            if (c) full += c;
-          } catch {}
-        }
+      if (data.error) {
+        toast.error(data.error);
+        return;
       }
 
-      // Extract JSON from response
-      const jsonMatch = full.match(/\{[\s\S]*\}/);
-      if (jsonMatch) {
-        const data = JSON.parse(jsonMatch[0]);
-        if (data.followUpQuestion && step === "input") {
-          setFollowUpQ(data.followUpQuestion);
-          setStep("followup");
-        } else {
-          setAnalysis({ results: data.results || [], recommendation: data.recommendation || "" });
-          setStep("result");
-        }
+      if (data.followUpQuestion && step === "input") {
+        setFollowUpQ(data.followUpQuestion);
+        setStep("followup");
+      } else {
+        setAnalysis({ results: data.results || [], recommendation: data.recommendation || "" });
+        setStep("result");
       }
     } catch (e) {
       console.error(e);
+      toast.error("Failed to analyze symptoms. Please try again.");
     } finally {
       setLoading(false);
     }
