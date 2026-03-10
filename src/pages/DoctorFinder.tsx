@@ -76,14 +76,16 @@ export default function DoctorFinder() {
           <div className="grid grid-cols-2 gap-2">
             {["Hospital near me", "Pharmacy near me", "Emergency room near me", "Clinic near me"].map(
               (q) => (
-                <button
+                <a
                   key={q}
-                  onClick={() => window.open(`https://www.google.com/maps/search/${encodeURIComponent(q)}`, "_blank")}
-                  className="text-xs p-2.5 rounded-lg bg-muted/30 hover:bg-muted/60 text-foreground transition-colors text-left"
+                  href={`https://www.google.com/maps/search/${encodeURIComponent(q)}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-xs p-2.5 rounded-lg bg-muted/30 hover:bg-muted/60 text-foreground transition-colors text-left block"
                 >
                   <MapPin className="w-3 h-3 inline mr-1 text-primary" />
                   {q}
-                </button>
+                </a>
               )
             )}
           </div>
