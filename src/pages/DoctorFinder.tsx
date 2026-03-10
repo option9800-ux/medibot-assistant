@@ -64,9 +64,11 @@ export default function DoctorFinder() {
             />
           </div>
 
-          <Button onClick={handleSearch} className="w-full">
-            <Search className="w-4 h-4 mr-1" /> Search on Google Maps
-          </Button>
+          <a href={getSearchUrl()} target="_blank" rel="noopener noreferrer" className="w-full">
+            <Button className="w-full">
+              <Search className="w-4 h-4 mr-1" /> Search on Google Maps
+            </Button>
+          </a>
         </div>
 
         <div className="glass-card p-4">
