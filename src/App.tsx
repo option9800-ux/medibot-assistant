@@ -14,6 +14,7 @@ import MedicineInfo from "./pages/MedicineInfo";
 import Reports from "./pages/Reports";
 import DoctorFinder from "./pages/DoctorFinder";
 import HealthHistory from "./pages/HealthHistory";
+import Profile from "./pages/Profile";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
