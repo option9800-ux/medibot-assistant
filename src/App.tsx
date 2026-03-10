@@ -41,6 +41,7 @@ const App = () => (
                       <Route path="/reports" element={<Reports />} />
                       <Route path="/doctors" element={<DoctorFinder />} />
                       <Route path="/history" element={<HealthHistory />} />
+                      <Route path="/profile" element={<Profile />} />
                       <Route path="*" element={<NotFound />} />
                     </Routes>
                   </AppLayout>

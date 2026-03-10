@@ -6,6 +6,7 @@ import {
   FileText,
   MapPin,
   History,
+  UserCircle,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation } from "react-router-dom";
@@ -29,6 +30,7 @@ const mainItems = [
   { title: "Reports", url: "/reports", icon: FileText },
   { title: "Doctor Finder", url: "/doctors", icon: MapPin },
   { title: "Health History", url: "/history", icon: History },
+  { title: "My Profile", url: "/profile", icon: UserCircle },
 ];
 
 export function AppSidebar() {
