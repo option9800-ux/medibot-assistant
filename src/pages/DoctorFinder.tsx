@@ -21,9 +21,9 @@ export default function DoctorFinder() {
   const [specialization, setSpecialization] = useState("");
   const [location, setLocation] = useState("");
 
-  const handleSearch = () => {
+  const getSearchUrl = () => {
     const q = `${specialization || "doctor"} near ${location || "me"}`;
-    window.open(`https://www.google.com/maps/search/${encodeURIComponent(q)}`, "_blank");
+    return `https://www.google.com/maps/search/${encodeURIComponent(q)}`;
   };
 
   return (
