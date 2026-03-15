@@ -64,11 +64,11 @@ export default function DoctorFinder() {
             />
           </div>
 
-          <a href={getSearchUrl()} target="_blank" rel="noopener noreferrer" className="w-full">
-            <Button className="w-full">
+          <Button className="w-full" asChild>
+            <a href={getSearchUrl()} target="_blank" rel="noopener noreferrer">
               <Search className="w-4 h-4 mr-1" /> Search on Google Maps
-            </Button>
-          </a>
+            </a>
+          </Button>
         </div>
 
         <div className="glass-card p-4">
