@@ -15,6 +15,10 @@ import Reports from "./pages/Reports";
 import DoctorFinder from "./pages/DoctorFinder";
 import HealthHistory from "./pages/HealthHistory";
 import Profile from "./pages/Profile";
+import Medications from "./pages/Medications";
+import Vitals from "./pages/Vitals";
+import Appointments from "./pages/Appointments";
+import Emergency from "./pages/Emergency";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -42,6 +46,10 @@ const App = () => (
                       <Route path="/doctors" element={<DoctorFinder />} />
                       <Route path="/history" element={<HealthHistory />} />
                       <Route path="/profile" element={<Profile />} />
+                      <Route path="/medications" element={<Medications />} />
+                      <Route path="/vitals" element={<Vitals />} />
+                      <Route path="/appointments" element={<Appointments />} />
+                      <Route path="/emergency" element={<Emergency />} />
                       <Route path="*" element={<NotFound />} />
                     </Routes>
                   </AppLayout>

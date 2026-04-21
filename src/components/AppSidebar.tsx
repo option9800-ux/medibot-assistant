@@ -8,6 +8,10 @@ import {
   History,
   UserCircle,
   LayoutDashboard,
+  Calendar,
+  HeartPulse,
+  AlertTriangle,
+  PillBottle,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation } from "react-router-dom";
@@ -30,6 +34,13 @@ const mainItems = [
   { title: "Symptom Checker", url: "/symptoms", icon: ClipboardList },
   { title: "Medicine Info", url: "/medicine", icon: Pill },
   { title: "Reports", url: "/reports", icon: FileText },
+];
+
+const careItems = [
+  { title: "Medications", url: "/medications", icon: PillBottle },
+  { title: "Vitals", url: "/vitals", icon: HeartPulse },
+  { title: "Appointments", url: "/appointments", icon: Calendar },
+  { title: "Emergency SOS", url: "/emergency", icon: AlertTriangle },
 ];
 
 const toolsItems = [
@@ -91,6 +102,7 @@ export function AppSidebar() {
       </SidebarHeader>
       <SidebarContent className="pt-2">
         {renderGroup("Main", mainItems)}
+        {renderGroup("Care", careItems)}
         {renderGroup("Tools", toolsItems)}
       </SidebarContent>
 
