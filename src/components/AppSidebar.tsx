@@ -12,6 +12,7 @@ import {
   HeartPulse,
   AlertTriangle,
   PillBottle,
+  Settings,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation } from "react-router-dom";
@@ -47,6 +48,7 @@ const toolsItems = [
   { title: "Doctor Finder", url: "/doctors", icon: MapPin },
   { title: "Health History", url: "/history", icon: History },
   { title: "My Profile", url: "/profile", icon: UserCircle },
+  { title: "Settings", url: "/settings", icon: Settings },
 ];
 
 export function AppSidebar() {
