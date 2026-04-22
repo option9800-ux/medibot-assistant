@@ -51,7 +51,8 @@ export default function Reports() {
    - End with "💡 What You Should Do Next" — simple, actionable suggestions (lifestyle tips, when to see a doctor, etc.).
 4. **Be warm and reassuring**, not scary. Avoid alarming language unless something is genuinely urgent.
 5. Keep sentences SHORT. Use bullet points generously.
-6. Always end with a gentle reminder to consult a real doctor for proper diagnosis.`,
+6. **Urgent signs checklist (CONDITIONAL — only when truly warranted):** ONLY if the report shows results that are genuinely concerning or dangerous (e.g., severely abnormal values, signs of serious conditions, values far outside safe ranges that need prompt medical attention), add a section titled "🚨 Urgent Signs to Watch For" right before the "What You Should Do Next" section. Format it as a markdown checklist using "- [ ]" items, listing specific physical symptoms the person should watch for that would mean they need to see a doctor IMMEDIATELY or go to the ER (e.g., "- [ ] Chest pain or pressure lasting more than a few minutes", "- [ ] Sudden severe shortness of breath", "- [ ] Fainting or severe dizziness"). If the report values are all normal or only mildly off, DO NOT include this section at all — omit it entirely. Never add it just to be safe; only when concerning findings genuinely warrant it.
+7. Always end with a gentle reminder to consult a real doctor for proper diagnosis.`,
                 fileData: { mimeType: file.mimeType, base64: file.base64 },
               },
             ],
