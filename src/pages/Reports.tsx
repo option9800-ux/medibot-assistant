@@ -2,6 +2,7 @@ import { useState, useRef } from "react";
 import { FileText, Upload, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 
 export default function Reports() {
   const [file, setFile] = useState<{ name: string; base64: string; mimeType: string } | null>(null);
@@ -51,7 +52,8 @@ export default function Reports() {
    - End with "💡 What You Should Do Next" — simple, actionable suggestions (lifestyle tips, when to see a doctor, etc.).
 4. **Be warm and reassuring**, not scary. Avoid alarming language unless something is genuinely urgent.
 5. Keep sentences SHORT. Use bullet points generously.
-6. Always end with a gentle reminder to consult a real doctor for proper diagnosis.`,
+6. **Urgent signs checklist (CONDITIONAL — only when truly warranted):** ONLY if the report shows results that are genuinely concerning or dangerous (e.g., severely abnormal values, signs of serious conditions, values far outside safe ranges that need prompt medical attention), add a section titled "🚨 Urgent Signs to Watch For" right before the "What You Should Do Next" section. Format it as a markdown checklist using "- [ ]" items, listing specific physical symptoms the person should watch for that would mean they need to see a doctor IMMEDIATELY or go to the ER (e.g., "- [ ] Chest pain or pressure lasting more than a few minutes", "- [ ] Sudden severe shortness of breath", "- [ ] Fainting or severe dizziness"). If the report values are all normal or only mildly off, DO NOT include this section at all — omit it entirely. Never add it just to be safe; only when concerning findings genuinely warrant it.
+7. Always end with a gentle reminder to consult a real doctor for proper diagnosis.`,
                 fileData: { mimeType: file.mimeType, base64: file.base64 },
               },
             ],
@@ -138,8 +140,8 @@ export default function Reports() {
 
         {result && (
           <div className="glass-card p-6">
-            <div className="prose prose-sm prose-invert max-w-none text-foreground [&_h1]:text-primary [&_h2]:text-primary [&_h3]:text-primary">
-              <ReactMarkdown>{result}</ReactMarkdown>
+            <div className="prose prose-sm prose-invert max-w-none text-foreground [&_h1]:text-primary [&_h2]:text-primary [&_h3]:text-primary [&_input[type=checkbox]]:accent-destructive [&_li.task-list-item]:list-none [&_li.task-list-item]:pl-0 [&_.contains-task-list]:pl-0">
+              <ReactMarkdown remarkPlugins={[remarkGfm]}>{result}</ReactMarkdown>
             </div>
           </div>
         )}
