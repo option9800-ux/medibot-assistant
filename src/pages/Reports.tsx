@@ -2,6 +2,7 @@ import { useState, useRef } from "react";
 import { FileText, Upload, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 
 export default function Reports() {
   const [file, setFile] = useState<{ name: string; base64: string; mimeType: string } | null>(null);
