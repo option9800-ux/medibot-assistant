@@ -42,18 +42,19 @@ export default function Reports() {
                 role: "user",
                 content: `Analyze this medical report and explain it in VERY SIMPLE everyday language that a common person with NO medical background can easily understand. Follow these rules strictly:
 
-1. **Avoid medical jargon.** If you must use a medical term, immediately explain it in brackets like a friend would (e.g., "Hemoglobin (the protein in blood that carries oxygen)").
-2. **Use simple analogies** and real-life comparisons wherever possible (e.g., "Think of cholesterol like grease building up in a pipe").
-3. **Structure with markdown:**
-   - Start with a short "📋 Summary in Plain Words" section (2-3 sentences overall health snapshot).
-   - Then "🔍 What Each Test Means" — list each value with: what it measures, your result, normal range, and a simple "what this means for you" line.
+1. Avoid medical jargon. If you must use a medical term, immediately explain it in brackets like a friend would (e.g., "Hemoglobin (the protein in blood that carries oxygen)").
+2. Use simple analogies and real-life comparisons wherever possible (e.g., "Think of cholesterol like grease building up in a pipe").
+3. Structure the response with markdown headings (##) and bullet points only. DO NOT use bold (**), italics (*), or any asterisk-based emphasis anywhere in your response. Use plain text inside headings and bullets.
+   - Start with a "## 📋 Summary in Plain Words" section (2-3 sentences overall health snapshot).
+   - Then "## 🔍 What Each Test Means" — list each value with: what it measures, your result, normal range, and a simple "what this means for you" line.
    - Mark abnormal values clearly with ⚠️ and explain in plain words why it matters.
    - Mark normal values with ✅.
-   - End with "💡 What You Should Do Next" — simple, actionable suggestions (lifestyle tips, when to see a doctor, etc.).
-4. **Be warm and reassuring**, not scary. Avoid alarming language unless something is genuinely urgent.
+   - End with "## 💡 What You Should Do Next" — simple, actionable suggestions (lifestyle tips, when to see a doctor, etc.).
+4. Be warm and reassuring, not scary. Avoid alarming language unless something is genuinely urgent.
 5. Keep sentences SHORT. Use bullet points generously.
-6. **Urgent signs checklist (CONDITIONAL — only when truly warranted):** ONLY if the report shows results that are genuinely concerning or dangerous (e.g., severely abnormal values, signs of serious conditions, values far outside safe ranges that need prompt medical attention), add a section titled "🚨 Urgent Signs to Watch For" right before the "What You Should Do Next" section. Format it as a markdown checklist using "- [ ]" items, listing specific physical symptoms the person should watch for that would mean they need to see a doctor IMMEDIATELY or go to the ER (e.g., "- [ ] Chest pain or pressure lasting more than a few minutes", "- [ ] Sudden severe shortness of breath", "- [ ] Fainting or severe dizziness"). If the report values are all normal or only mildly off, DO NOT include this section at all — omit it entirely. Never add it just to be safe; only when concerning findings genuinely warrant it.
-7. Always end with a gentle reminder to consult a real doctor for proper diagnosis.`,
+6. Urgent signs checklist (CONDITIONAL — only when truly warranted): ONLY if the report shows results that are genuinely concerning or dangerous (e.g., severely abnormal values, signs of serious conditions, values far outside safe ranges that need prompt medical attention), add a section titled "## 🚨 Urgent Signs to Watch For" right before the "What You Should Do Next" section. Format it as a markdown checklist using "- [ ]" items, listing specific physical symptoms the person should watch for that would mean they need to see a doctor IMMEDIATELY or go to the ER (e.g., "- [ ] Chest pain or pressure lasting more than a few minutes", "- [ ] Sudden severe shortness of breath", "- [ ] Fainting or severe dizziness"). If the report values are all normal or only mildly off, DO NOT include this section at all — omit it entirely. Never add it just to be safe; only when concerning findings genuinely warrant it.
+7. Always end with a gentle reminder to consult a real doctor for proper diagnosis.
+8. REMEMBER: NO asterisks (**) for bold anywhere. Use headings and plain text only.`,
                 fileData: { mimeType: file.mimeType, base64: file.base64 },
               },
             ],
@@ -81,7 +82,7 @@ export default function Reports() {
             const c = parsed.choices?.[0]?.delta?.content;
             if (c) {
               full += c;
-              setResult(full);
+              setResult(full.replace(/\*\*/g, ""));
             }
           } catch {}
         }
