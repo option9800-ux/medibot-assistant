@@ -39,7 +39,19 @@ export default function Reports() {
             messages: [
               {
                 role: "user",
-                content: "Analyze this medical report. Extract key values, explain results in simple language, and highlight any abnormal values with ⚠️. Format with markdown.",
+                content: `Analyze this medical report and explain it in VERY SIMPLE everyday language that a common person with NO medical background can easily understand. Follow these rules strictly:
+
+1. **Avoid medical jargon.** If you must use a medical term, immediately explain it in brackets like a friend would (e.g., "Hemoglobin (the protein in blood that carries oxygen)").
+2. **Use simple analogies** and real-life comparisons wherever possible (e.g., "Think of cholesterol like grease building up in a pipe").
+3. **Structure with markdown:**
+   - Start with a short "📋 Summary in Plain Words" section (2-3 sentences overall health snapshot).
+   - Then "🔍 What Each Test Means" — list each value with: what it measures, your result, normal range, and a simple "what this means for you" line.
+   - Mark abnormal values clearly with ⚠️ and explain in plain words why it matters.
+   - Mark normal values with ✅.
+   - End with "💡 What You Should Do Next" — simple, actionable suggestions (lifestyle tips, when to see a doctor, etc.).
+4. **Be warm and reassuring**, not scary. Avoid alarming language unless something is genuinely urgent.
+5. Keep sentences SHORT. Use bullet points generously.
+6. Always end with a gentle reminder to consult a real doctor for proper diagnosis.`,
                 fileData: { mimeType: file.mimeType, base64: file.base64 },
               },
             ],
