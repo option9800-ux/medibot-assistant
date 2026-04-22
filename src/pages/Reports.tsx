@@ -140,8 +140,8 @@ export default function Reports() {
 
         {result && (
           <div className="glass-card p-6">
-            <div className="prose prose-sm prose-invert max-w-none text-foreground [&_h1]:text-primary [&_h2]:text-primary [&_h3]:text-primary">
-              <ReactMarkdown>{result}</ReactMarkdown>
+            <div className="prose prose-sm prose-invert max-w-none text-foreground [&_h1]:text-primary [&_h2]:text-primary [&_h3]:text-primary [&_input[type=checkbox]]:accent-destructive [&_li.task-list-item]:list-none [&_li.task-list-item]:pl-0 [&_.contains-task-list]:pl-0">
+              <ReactMarkdown remarkPlugins={[remarkGfm]}>{result}</ReactMarkdown>
             </div>
           </div>
         )}
