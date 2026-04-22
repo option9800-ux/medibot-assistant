@@ -82,7 +82,7 @@ export default function Reports() {
             const c = parsed.choices?.[0]?.delta?.content;
             if (c) {
               full += c;
-              setResult(full);
+              setResult(full.replace(/\*\*/g, ""));
             }
           } catch {}
         }
